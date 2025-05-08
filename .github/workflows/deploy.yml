@@ -13,9 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Remove default SSH keys
-        run: rm -rf ~/.ssh/*
-
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
@@ -31,13 +28,12 @@ jobs:
 
       - name: Deploy via rsync
         run: |
-          rsync -avz --exclude='*.log' --exclude='*.tmp' --delete ./ randomcharacter@ssh-randomcharacter.alwaysdata.net:~/backend
+          rsync -avz --exclude='node_modules' --exclude='.git' --exclude='.github' --delete ./ randomcharacter@ssh-randomcharacter.alwaysdata.net:~/backend
 
       - name: Install dependencies on server
         run: |
           ssh -i ~/.ssh/id_rsa randomcharacter@ssh-randomcharacter.alwaysdata.net << 'EOF'
           cd ~/backend || exit 1
-          chmod -R 755 . || exit 1  # Assure les bonnes permissions sur le dossier backend
           npm install
           npm run build || echo "No build script found, skipping..."
           EOF
