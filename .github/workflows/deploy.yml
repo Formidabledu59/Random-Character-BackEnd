@@ -1,0 +1,39 @@
+name: Deploy to Alwaysdata - Random Character
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.A2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ssh-randomcharacter.alwaysdata.net >> ~/.ssh/known_hosts
+          echo "Host alwaysdata
+            HostName ssh-randomcharacter.alwaysdata.net
+            User randomcharacter
+            IdentityFile ~/.ssh/id_rsa
+            IdentitiesOnly yes
+          " >> ~/.ssh/config
+
+      - name: Deploy via rsync
+        run: |
+          rsync -avz --delete ./ alwaysdata:~/backend
+
+      - name: Install dependencies on server
+        run: |
+          ssh -i ~/.ssh/id_rsa randomcharacter@ssh-randomcharacter.alwaysdata.net << 'EOF'
+          cd ~/backend || exit 1
+          npm install
+          npm run build || echo "No build script found, skipping..."
+          EOF
