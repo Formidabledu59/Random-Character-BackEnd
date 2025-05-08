@@ -37,6 +37,8 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa randomcharacter@ssh-randomcharacter.alwaysdata.net << 'EOF'
           cd ~/backend || exit 1
+          # Install the necessary packages
+          npm install express mysql2 dotenv cors bcrypt
           npm install
           npm run build || echo "No build script found, skipping..."
           EOF
